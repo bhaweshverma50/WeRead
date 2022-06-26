@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const userModel = require("./Models/userModel");
 
+const jwt = require("jsonwebtoken");
+
 const app = express();
 app.use(express.json());
 
@@ -18,7 +20,7 @@ mongoose
 app.post("/signup", (req, res) => {
   userModel.findOne({ email: req.body.email }, (err, user) => {
     if (user) {
-      res.status(400).json({ error: "User already exists" });
+      res.status(400).json({ msg: "User already exists" });
     } else {
       try {
         const hash = bcrypt.hashSync(req.body.password, 10);
@@ -29,10 +31,11 @@ app.post("/signup", (req, res) => {
         });
         user
           .save()
-          .then(() => res.send({ status: true, message: "Signup successful" }))
-          .catch((err) => res.send(err));
+          .then(() => res.status(201).json({ msg: "User created" }))
+          .catch((err) => res.status(400).json({ msg: err }));
       } catch (err) {
         console.log(err);
+        res.status(400).json({ msg: err });
       }
     }
   });
@@ -42,15 +45,40 @@ app.post("/login", (req, res) => {
   userModel.findOne({ username: req.body.username }, (err, user) => {
     if (user) {
       if (bcrypt.compareSync(req.body.password, user.password)) {
-        res.send({ status: true, message: "Login successful" });
+        let user = { username: req.body.username };
+        const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken(user);
+        res
+          .status(200)
+          .json({ msg: "User logged in", accessToken, refreshToken });
       } else {
-        res.status(400).json({ status: false, message: "Incorrect password" });
+        res.status(400).json({ msg: "Incorrect password" });
       }
     } else {
-      res.status(400).json({ status: false, message: "User does not exist" });
+      res.status(400).json({ msg: "User does not exist" });
     }
   });
 });
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (token == null) return res.sendStatus(401);
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
+
+function generateAccessToken(user) {
+  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" });
+}
+
+function generateRefreshToken(user) {
+  return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET);
+}
 
 app.listen(process.env.PORT, () =>
   console.log(`Server is running on port ${process.env.PORT}`)

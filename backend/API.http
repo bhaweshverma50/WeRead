@@ -2,9 +2,9 @@ post http://127.0.0.1:3000/signup
 Content-Type: application/json
 
 {
-    "username": "Nikhil",
-    "email": "nik@gmail.com",
-    "password": "nik12345"
+    "username": "Bhawesh",
+    "email": "bhawesh@gmail.com",
+    "password": "bhawesh987"
 }
 
 ###
@@ -13,8 +13,8 @@ post http://127.0.0.1:3000/login
 Content-Type: application/json
 
 {
-    "username": "Nikhil",
-    "password": "nik2345"
+    "username": "Bhawesh",
+    "password": "bhawesh987"
 }
 
 ###
