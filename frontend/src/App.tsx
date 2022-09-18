@@ -1,15 +1,19 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import reactLogo from "./assets/react.svg";
+import "./App.css";
 import { io } from "socket.io-client";
 
 function App() {
-  const [count, setCount] = useState(0)
-  const socket = io("https://bhaweshverma50-weread-w5rrxr6v6wr3v9w6-5005.githubpreview.dev/");
+  const [count, setCount] = useState(0);
 
-  socket.on("connect", () => {
-    console.log(socket.id);
-  });
+  useEffect(() => {
+    const socket = io("http://localhost:3000");
+
+    socket.on("connect", () => {
+      console.log(socket.id);
+      // socket.emit("msg", `User connected with ID: ${socket.id}`);
+    });
+  }, []);
 
   return (
     <div className="App">
@@ -23,7 +27,7 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 5)}>
+        <button onClick={(e) => setCount((count) => count + 5)}>
           count is {count}
         </button>
         <p>
@@ -34,7 +38,7 @@ function App() {
         Click on the Vite and React logos to learn more
       </p>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
